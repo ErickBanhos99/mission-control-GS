@@ -1,5 +1,4 @@
 """Interface CLI estilo Claude Code — usa Rich."""
-
 from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
@@ -32,40 +31,43 @@ def run_cli(engine):
     if not engine.is_ready():
         console.print(" ⚠ Engine status: AGUARDANDO IMPLEMENTAÇÃO ✗\n",
                       style="yellow")
-
+    else:
+        console.print("Engine status: OPERACIONAL\n", style="green")
     while True:
         try:
-            user_input = session.prompt("❯ ").strip()
+            user_input = input("❯ ").strip()
         except (KeyboardInterrupt, EOFError):
             break
 
-    if not user_input:
-        continue
+        if not user_input:
+            continue
 
-    if user_input == "/exit":
-        break
+        if user_input == "/exit":
+            break
 
-    if user_input == "/help":
-        console.print("Comandos: /help /status /about /clear /exit")
-        continue
+        if user_input == "/help":
+            console.print("Comandos: /help /status /about /clear /exit")
+            console.print(
+                "Teste: 'simule incêndio', 'simule energia baixa', 'simule falha de comunicação', 'status normal'")
+            continue
 
-    if user_input == "/about":
-        show_response(
+        if user_input == "/about":
+            show_response(
             "Mission Control AI — EnviroSat\n\n"
             "CLI em Python para simular telemetria de um satélite ambiental, "
             "detectar anomalias por regras Python e gerar análise via IA."
         )
-        continue
+            continue
 
-    if user_input == "/status":
-        show_response(engine.status_snapshot())
-        continue
+        if user_input == "/status":
+            show_response(engine.status_snapshot())
+            continue
 
-    if user_input == "/clear":
-        console.clear()
-        show_banner()
-        continue
+        if user_input == "/clear":
+            console.clear()
+            show_banner()
+            continue
 
     # Qualquer outra entrada vai para o motor de análise
-    resposta = engine.analyze(user_input)
-    show_response(resposta)
+        resposta = engine.analyze(user_input)
+        show_response(resposta)
