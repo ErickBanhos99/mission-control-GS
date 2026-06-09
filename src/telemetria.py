@@ -41,3 +41,37 @@ CENARIOS = {
         "focos_detectados": (2, 14),
     },
 }
+
+def _valor(intervalo):
+    a, b = intervalo
+    if isinstance(a, int) and isinstance(b, int):
+        return random.randint(a, b)
+    return round(random.uniform(a, b), 2)
+
+
+def coletar(cenario=None):
+    """Retorna um pacote de telemetria plausível para o EnviroSat."""
+    if cenario is None or cenario not in CENARIOS:
+        cenario = random.choices(
+            ["normal", "incendio", "energia_baixa", "comunicacao"],
+            weights=[0.55, 0.20, 0.12, 0.13],
+            k=1
+        )[0]
+
+    base = CENARIOS[cenario]
+    dados = {chave: _valor(intervalo) for chave, intervalo in base.items()}
+
+    dados.update({
+        "trilha": "EnviroSat",
+        "cenario": cenario,
+        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "orbita": "LEO polar síncrona ao Sol",
+        "area_monitorada": random.choice([
+            "Amazônia Legal",
+            "Cerrado",
+            "Pantanal",
+            "Mata Atlântica"
+        ]),
+    })
+
+    return dados
