@@ -1,9 +1,11 @@
 """Motor de análise da Mission Control AI."""
 
 import os
-from ollama import Client
-from dotenv import load_dotenv
 from pathlib import Path
+from dotenv import load_dotenv
+from ollama import Client
+from src.telemetria import coletar
+from src.alertas import avaliar
 
 load_dotenv()
 
@@ -51,20 +53,80 @@ class MissionEngine:
         self.system_prompt = load_system_prompt()
 
     def is_ready(self):
-        return False
+        return True
 
     def status_snapshot(self):
         """Retorna texto resumindo o estado atual da telemetria."""
-        return "🛠️ status_snapshot() ainda não implementado."
+        dados = coletar()
+        diagnostico = avaliar(dados)
+
+        return self._formatar_status(dados, diagnostico)
 
     def analyze(self, pergunta_usuario):
         """Analisa a pergunta com base na telemetria + alertas + IA."""
-        return (
-            "🛠️ Implementação pendente.\n\n"
-            "Olá! A interface CLI está funcionando, mas a lógica\n"
-            "de análise ainda não foi conectada. O grupo precisa:\n\n"
-            " 1. Completar src/telemetria.py\n"
-            " 2. Completar src/alertas.py\n"
-            " 3. Escrever o system prompt em prompts/system_prompt.md\n"
-            " 4. Sobrescrever analyze() em src/engine.py"
-        )
+        texto = pergunta_usuario.lower()
+
+        if "incêndio" in texto or "incendio" in texto or "queimada" in texto or "fogo" in texto:
+            dados = coletar("incendio")
+
+        elif "energia" in texto or "bateria" in texto:
+            dados = coletar("energia_baixa")
+
+        elif "comunicação" in texto or "comunicacao" in texto or "downlink" in texto or "sinal" in texto or "buffer" in texto:
+            dados = coletar("comunicacao")
+
+        elif "normal" in texto or "nominal" in texto or "estável" in texto or "estavel" in texto:
+            dados = coletar("normal")
+
+        else:
+            dados = coletar()
+
+        diagnostico = avaliar(dados)
+
+        prompt = f"""
+Pergunta do operador:
+{pergunta_usuario}
+
+Telemetria atual do EnviroSat:
+{dados}
+
+Diagnóstico gerado por regras Python:
+{diagnostico}
+
+Gere uma análise operacional em português brasileiro.
+Explique:
+1. O estado técnico da missão.
+2. Os alertas detectados.
+3. As respostas automatizadas tomadas pelo sistema.
+4. O impacto terrestre para monitoramento ambiental, queimadas e áreas protegidas.
+""".strip()
+
+        resposta_ia = llm(prompt, system=self.system_prompt)
+
+        status_formatado = self._formatar_status(dados, diagnostico)
+        return status_formatado + "\n\n" + resposta_ia
+
+    def _formatar_status(self, dados, diagnostico):
+        alertas = "\n".join(f"- {a}" for a in diagnostico["alertas"])
+        acoes = "\n".join(f"- {a}" for a in diagnostico["acoes_automaticas"])
+
+        return f""" ENVIROSAT / MISSION CONTROL AI
+Status: {diagnostico["severidade"]}
+Cenário simulado: {dados["cenario"]}
+Área monitorada: {dados["area_monitorada"]}
+Timestamp: {dados["timestamp"]}
+
+Telemetria:
+- Sensor térmico: {dados["sensor_termico_c"]} °C
+- Sensor óptico RGB+NIR: {dados["sensor_optico_percent"]}%
+- Buffer de imagens: {dados["buffer_imagens_percent"]}%
+- Precisão de geolocalização: {dados["precisao_geolocalizacao_m"]} m
+- Energia disponível: {dados["energia_percent"]}%
+- Sinal de downlink: {dados["sinal_downlink_percent"]}%
+- Focos detectados: {dados["focos_detectados"]}
+
+Alertas Python:
+{alertas if alertas else "- Nenhum alerta crítico."}
+
+Respostas automatizadas:
+{acoes if acoes else "- Nenhuma ação automática necessária."}"""
