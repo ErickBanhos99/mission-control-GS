@@ -39,7 +39,7 @@ def show_banner():
 
 
 def show_help():
-    """Mostra comandos disponíveis."""
+    """Mostra comandos disponíveis e sugestões de simulação."""
     table = Table(
         title="Comandos disponíveis",
         border_style="#06B6D4",
@@ -58,6 +58,21 @@ def show_help():
 
     console.print(table)
 
+    simulacoes = (
+        "Experimente digitar:\n\n"
+        "🔥 simule incêndio na Amazônia Legal\n"
+        "🔋 simule energia baixa\n"
+        "📡 simule falha de comunicação\n"
+        "🟢 status normal\n"
+        "🛰️ como está a missão?"
+    )
+
+    console.print(Panel(
+        simulacoes,
+        title="◆ Sugestões de simulação",
+        border_style="green",
+        padding=(1, 2)
+    ))
 
 def show_response(text):
     """Renderiza a resposta em painel."""
