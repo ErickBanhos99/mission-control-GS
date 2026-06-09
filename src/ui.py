@@ -1,15 +1,12 @@
-"""Interface CLI estilo Claude Code — usa Rich + prompt-toolkit."""
+"""Interface CLI estilo Claude Code — usa Rich."""
 
 from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
-from prompt_toolkit import PromptSession
-from prompt_toolkit.styles import Style
 import pyfiglet
 from datetime import datetime
 
 console = Console()
-session = PromptSession(style=Style.from_dict({"prompt": "#06B6D4 bold"}))
 
 def show_banner():
     """Exibe banner ASCII colorido no início."""
@@ -50,6 +47,14 @@ def run_cli(engine):
 
     if user_input == "/help":
         console.print("Comandos: /help /status /about /clear /exit")
+        continue
+
+    if user_input == "/about":
+        show_response(
+            "Mission Control AI — EnviroSat\n\n"
+            "CLI em Python para simular telemetria de um satélite ambiental, "
+            "detectar anomalias por regras Python e gerar análise via IA."
+        )
         continue
 
     if user_input == "/status":
